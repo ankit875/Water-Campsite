@@ -12,3 +12,6 @@
 #delete-form{
     display: inline;
 }
+.starability-basic{
+    min-height: 0;
+}

@@ -16,6 +16,7 @@ router.get("/", function(req, res){
     
 })
 
+//Create add new campground to DB
 router.post("/",middleware.isloggedIn, function(req, res){
     var name= req.body.name;
     var price= req.body.price;
@@ -26,6 +27,7 @@ router.post("/",middleware.isloggedIn, function(req, res){
         username: req.user.username
     }
     var newCampground= {name: name, price:price, image: image, description: desc,author:author}
+    //Create a new campground and save to DB
     Campground.create(newCampground, function(err, newlycreated){
         if(err){
             console.log(err)
@@ -37,18 +39,33 @@ router.post("/",middleware.isloggedIn, function(req, res){
     }); 
 });
 
+//Show Form to create new campground    
 router.get("/new",middleware.isloggedIn, function(req, res){
     res.render("campgrounds/new")
 })
 
+//Show more info about one campground
 router.get("/:id", function(req, res){
     
-    Campground.findById(req.params.id).populate("comments").exec(function(err, foundCampground){
+    Campground.findById(req.params.id).populate("comments").populate("ratings").exec(function(err, foundCampground){
         if(err){
             console.log(err)
         }
         else{
-            console.log(foundCampground)
+            if(foundCampground.ratings.length > 0){
+                var ratings =[];
+                var length= foundCampground.ratings.length;
+                foundCampground.ratings.forEach(function(rating){
+                    ratings.push(rating.rating)
+                });
+            var rating = ratings.reduce(function(total, element){
+                return total + element;
+            })
+            foundCampground.rating = rating / length;
+            foundCampground.save()
+            }
+            console.log("Ratings", foundCampground.ratings)
+            console.log("Rating", foundCampground.rating)
             res.render("campgrounds/show", {campground: foundCampground})
         }
     })
